@@ -1,0 +1,20 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Declare files that will always have LF line endings on checkout.
+*.cpp text eol=lf
+*.h text eol=lf
+*.ebnf text eol=lf
+
+# Ignore for distribution
+/docs               export-ignore
+/etc                export-ignore
+/tests              export-ignore
+/.gitattributes     export-ignore
+/makefile           export-ignore
+/.gitignore         export-ignore
+/.travis.yml        export-ignore
+/README.md          export-ignore
+
+# Language override
+*.ebnf linguist-detectable=true

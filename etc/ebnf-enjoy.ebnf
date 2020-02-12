@@ -1,0 +1,235 @@
+(* lexical *)
+EOF (* 0 *)
+    = U+0000
+    | U+001A
+    ;
+
+COMMENT ? ignore ? (* 1 *)
+    = '(', '*', {character_comment}, '*', ')'
+    ;
+
+WHITESPACE ? ignore ? (* 2 *)
+    = character_whitespace, {character_whitespace}
+    ;
+
+IDENTIFIER_NONTERMINAL (* 3 *)
+    = character_lower, {character_identifier}
+    ;
+
+IDENTIFIER_TERMINAL (* 4 *)
+    = character_upper, {character_identifier}
+    ;
+
+LITERAL_UNICODE (* 5 *)
+    = ('U' | 'u'), '+', digit_hex, [digit_hex, [digit_hex, [digit_hex, [digit_hex, [digit_hex]]]]]
+    ;
+
+SPECIAL_DIRECTIVE (* 6 *)
+    = '?', {character_special}, '?'
+    ;
+
+LITERAL_STRING (* 7 *)
+    = '"', {character_dq}, '"'
+    | "'", {character_sq}, "'"
+    ;
+
+INTEGER (* 8 *)
+    = digit_dec_nonzero
+    | digit_dec_nonzero, {digit_dec}
+    ;
+
+ALTERNATOR (* 9 *)
+    = '|'
+    ;
+
+CONCATENATION (* 10 *)
+    = ','
+    ;
+
+DEFINE (* 11 *)
+    = '='
+    ;
+
+EXCEPT (* 12 *)
+    = '-'
+    ;
+
+RANGE (* 13 *)
+    = '...'
+    ;
+
+REPEAT (* 14 *)
+    = '*'
+    ;
+
+TERMINATOR (* 15 *)
+    = ';'
+    ;
+
+GROUP_OPEN (* 16 *)
+    = '('
+    ;
+
+GROUP_CLOSE (* 17 *)
+    = ')'
+    ;
+
+OPTION_OPEN (* 18 *)
+    = '['
+    ;
+
+OPTION_CLOSE (* 19 *)
+    = ']'
+    ;
+
+REPEAT_OPEN (* 20 *)
+    = '{'
+    ;
+
+REPEAT_CLOSE (* 21 *)
+    = '}'
+    ;
+
+character_comment (* # *)
+    = U+0001...U+0019
+    | U+001b...U+007f
+    ;
+
+character_lower (* # *)
+    = U+0061...U+007a
+    ;
+
+character_upper (* # *)
+    = U+0041...U+005a
+    ;
+
+character_identifier (* # *)
+    = character_lower
+    | character_upper
+    | '_'
+    ;
+
+character_special (* # *)
+    = U+0020...U+003e
+    | U+0040...U+007e
+    ;
+
+character_whitespace (* # *)
+    = U+0001...U+0019
+    | U+001b...U+0020
+    | U+007f
+    ;
+
+digit_dec_nonzero (* # *)
+    = U+0031...U+0039
+    ;
+
+digit_dec (* # *)
+    = U+0030
+    | digit_dec_nonzero
+    ;
+
+digit_hex (* # *)
+    = degit_dec
+    | U+0041...U+0046
+    | U+0061...U+0066
+    ;
+
+character_dq (* # *)
+    = U+0020...U+0021
+    | U+0023...U+007f
+    ;
+
+character_sq (* # *)
+    = U+0020...U+0026
+    | U+0028...U+007f
+    ;
+
+(* syntactic *)
+
+unicode_value (* 22 *)
+    = LITERAL_UNICODE
+    | unicode_value, RANGE, LITERAL_UNICODE
+    ;
+
+sequence_grouped (* 23 *)
+    = GROUP_OPEN, definition_list, GROUP_CLOSE
+    ;
+
+sequence_repeated (* 24 *)
+    = REPEAT_OPEN, definition_list, REPEAT_CLOSE
+    ;
+
+sequence_optional (* 25 *)
+    = OPTION_OPEN, definition_list, OPTION_CLOSE
+    ;
+
+bracket_sequence (* 26 *)
+    = sequence_grouped
+    | sequence_repeated
+    | sequence_optional
+    ;
+
+identifier (* 27 *)
+    = IDENTIFIER_NONTERMINAL
+    | IDENTIFIER_TERMINAL
+    ;
+
+literal (* 28 *)
+    = LITERAL_STRING
+    | unicode_value
+    ;
+
+primary (* 29 *)
+    = bracket_sequence
+    | identifier
+    | literal
+    ;
+
+factor (* 30 *)
+    = primary
+    | INTEGER, REPEAT, primary
+    ;
+
+exception (* 31 *)
+    = EXCEPT, factor
+    ;
+
+term (* 32 *)
+    = factor
+    | term, exception
+    ;
+
+definition (* 33 *)
+    = term
+    | definition, CONCATENATION, term
+    ;
+
+definition_list (* 34 *)
+    = definition
+    | definition_list, ALTERNATOR, definition
+    ;
+
+rule_nonterminal (* 35 *)
+    = IDENTIFIER_NONTERMINAL, DEFINE, definition_list, TERMINATOR
+    | IDENTIFIER_NONTERMINAL, SPECIAL_DIRECTIVE, DEFINE, definition_list, TERMINATOR
+    ;
+
+rule_terminal (* 36 *)
+    = IDENTIFIER_TERMINAL, DEFINE, definition_list, TERMINATOR
+    | IDENTIFIER_TERMINAL, SPECIAL_DIRECTIVE, DEFINE, definition_list, TERMINATOR
+    ;
+
+rule (* 37 *)
+    = rule_head
+    ;
+
+rule_list (* 38 *)
+    = rule
+    | rule_list, rule
+    ;
+
+grammar ? root ? (* 39 *)
+    = EOF
+    | rule_list, EOF
+    ;
