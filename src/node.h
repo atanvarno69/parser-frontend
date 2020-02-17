@@ -9,7 +9,6 @@
 #include "index.h"
 
 namespace enjoy {
-    class visitor;
 
     class node {
       public:
@@ -34,7 +33,6 @@ namespace enjoy {
             const std::map<unsigned, std::string>&
         ) const noexcept;
         [[nodiscard]] std::string valueString(void) const noexcept;
-        void accept(visitor&) noexcept;
     };
 }
 

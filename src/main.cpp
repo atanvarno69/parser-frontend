@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     ebnfAstGenerator astGenerator;
     output = *astGenerator.visit(&output);
     nodeReader reader {dictionary};
-    output.accept(reader);
+    output = *reader.visit(&output);
     std::cout << "Winning!" << std::endl;
     return EXIT_SUCCESS;
 }

@@ -88,8 +88,4 @@ namespace enjoy {
         }
         return output;
     }
-
-    void node::accept(visitor& visitor) noexcept {
-        visitor.visit(this);
-    }
 }
